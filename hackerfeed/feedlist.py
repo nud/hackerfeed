@@ -7,29 +7,25 @@
 
 
 import xml.sax
+from sqlalchemy.exc import IntegrityError
 
-
-class Feed(object):
-    def __init__(self, url, title):
-        self.url = url
-        self.title = title
-
-    def __unicode__(self):
-        return u"%s — %s" % (self.title, self.url)
+import models
 
 
 class OpmlContentHandler(xml.sax.ContentHandler):
-    def __init__(self):
-        self.feeds = []
-
     def startElement(self, name, attrs):
         if name == 'outline' and 'title' in attrs and 'xmlUrl' in attrs:
-            self.feeds.append(Feed(attrs['xmlUrl'], attrs['title']))
+            try:
+                models.session.add(models.Feed(attrs['xmlUrl'], attrs['title']))
+                models.session.commit()
+            except IntegrityError, e:
+                models.session.rollback()
 
 
 class FeedList(object):
     def __init__(self, path):
-        self.feeds = self.__parse_opml(path)
+        self.__parse_opml(path)
+        self.feeds = models.session.query(models.Feed).all()
 
     def __parse_opml(self, path):
         handler = OpmlContentHandler()
@@ -37,5 +33,3 @@ class FeedList(object):
         parser = xml.sax.make_parser()
         parser.setContentHandler(handler)
         parser.parse(open(path, 'r'))
-
-        return handler.feeds

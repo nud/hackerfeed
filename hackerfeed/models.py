@@ -14,6 +14,21 @@ from sqlalchemy.orm import sessionmaker
 Base = declarative_base()
 
 
+class Feed(Base):
+    __tablename__ = 'feeds'
+
+    id = Column(Integer, primary_key=True)
+    url = Column(String, unique=True)
+    title = Column(String)
+
+    def __init__(self, url, title):
+        self.url = url
+        self.title = title
+
+    def __unicode__(self):
+        return u"%s — %s" % (self.title, self.url)
+
+
 class Entry(Base):
     __tablename__ = 'entries'
 
