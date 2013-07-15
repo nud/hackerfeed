@@ -11,7 +11,8 @@ import jinja2
 
 
 def dateformat(value, format='%Y-%m-%d %H:%M:%S'):
-    return datetime.datetime.fromtimestamp(value).strftime(format)
+    if value:
+        return datetime.datetime.fromtimestamp(value).strftime(format)
 
 
 class Environment(jinja2.Environment):
