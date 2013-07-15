@@ -12,14 +12,15 @@ import os
 
 import cache
 import feedlist
+import models
 import views
 
 
 def hackerfeed(opml_filename, db_filename, base_path):
-    Entry = collections.namedtuple('Entry', ['id', 'link', 'title', 'updated'])
+    models.init_storage(db_filename)
 
     fl = feedlist.FeedList(opml_filename)
-    fc = cache.FeedCache(db_filename)
+    fc = cache.FeedCache()
 
     for feed in fl.feeds:
         p = feedparser.parse(feed.url)
@@ -32,7 +33,7 @@ def hackerfeed(opml_filename, db_filename, base_path):
 
     for pageno in range(0, 10):
         variables = {
-            'entries': [Entry(*x) for x in fc.get_entries(pageno, pagesize)],
+            'entries': fc.get_entries(pageno, pagesize),
             'pageno': pageno,
             'pagesize': pagesize,
         }
