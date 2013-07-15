@@ -11,32 +11,37 @@ import feedparser
 import os
 
 import cache
-import feedlist
+import cli
 import models
+import opml
 import views
 
 
-def hackerfeed(opml_filename, db_filename, base_path):
+def hackerfeed(db_filename):
     models.init_storage(db_filename)
 
-    fl = feedlist.FeedList(opml_filename)
+    args = cli.parse_args()
+
+    if args.opml:
+        opml.import_opml(args.opml)
+
     fc = cache.FeedCache()
 
-    for feed in fl.feeds:
-        p = feedparser.parse(feed.url)
-        for entry in p.entries:
-            fc.add_entry(entry)
+    if args.poll:
+        for feed in models.session.query(models.Feed).all():
+            p = feedparser.parse(feed.url)
+            for entry in p.entries:
+                fc.add_entry(entry)
 
-    template = views.env.get_template('page.html')
+    if args.generate:
+        template = views.env.get_template('page.html')
+        pagesize = 100
 
-    pagesize = 100
-
-    for pageno in range(0, 10):
-        variables = {
-            'entries': fc.get_entries(pageno, pagesize),
-            'pageno': pageno,
-            'pagesize': pagesize,
-        }
-        path = os.path.join(base_path, 'p%02d.html' % (pageno+1))
-
-        template.stream(**variables).dump(path, 'utf-8')
+        for pageno in range(0, 10):
+            variables = {
+                'entries': fc.get_entries(pageno, pagesize),
+                'pageno': pageno,
+                'pagesize': pagesize,
+            }
+            path = os.path.join(args.generate, 'p%02d.html' % (pageno+1))
+            template.stream(**variables).dump(path, 'utf-8')

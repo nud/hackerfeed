@@ -7,9 +7,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-import sys
-
 import hackerfeed
 
 
-hackerfeed.hackerfeed(sys.argv[1], 'cache.db', sys.argv[2])
+hackerfeed.hackerfeed('cache.db')

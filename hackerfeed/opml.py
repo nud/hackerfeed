@@ -22,14 +22,9 @@ class OpmlContentHandler(xml.sax.ContentHandler):
                 models.session.rollback()
 
 
-class FeedList(object):
-    def __init__(self, path):
-        self.__parse_opml(path)
-        self.feeds = models.session.query(models.Feed).all()
+def import_opml(path):
+    handler = OpmlContentHandler()
 
-    def __parse_opml(self, path):
-        handler = OpmlContentHandler()
-
-        parser = xml.sax.make_parser()
-        parser.setContentHandler(handler)
-        parser.parse(open(path, 'r'))
+    parser = xml.sax.make_parser()
+    parser.setContentHandler(handler)
+    parser.parse(open(path, 'r'))
