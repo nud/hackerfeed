@@ -6,40 +6,39 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-import collections
-import feedparser
 import os
 
-import cache
+import storage
 import cli
+import feeds
 import models
 import opml
 import views
 
 
 def hackerfeed(db_filename):
-    models.init_storage(db_filename)
+    store = storage.Store(db_filename)
 
     args = cli.parse_args()
 
     if args.opml:
-        opml.import_opml(args.opml)
-
-    fc = cache.FeedCache()
+        parser = opml.OpmlParser(store)
+        parser.import_opml(args.opml)
 
     if args.poll:
-        for feed in models.session.query(models.Feed).all():
-            p = feedparser.parse(feed.url)
-            for entry in p.entries:
-                fc.add_entry(entry)
+        parser = feeds.FeedParser(store)
+        for feed in store.session().query(models.Feed).all():
+            parser.import_feed(feed)
 
     if args.generate:
+        session = store.session()
         template = views.env.get_template('page.html')
         pagesize = 100
 
         for pageno in range(0, 10):
+            entries = session.query(models.Entry).order_by('updated desc').offset(pageno*100).limit(100)
             variables = {
-                'entries': fc.get_entries(pageno, pagesize),
+                'entries': entries.all(),
                 'pageno': pageno,
                 'pagesize': pagesize,
             }
