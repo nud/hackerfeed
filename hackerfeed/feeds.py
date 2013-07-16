@@ -13,8 +13,8 @@ import models
 
 
 class FeedParser(object):
-    def __init__(self, store):
-        self.store = store
+    def __init__(self, session):
+        self.session = session
 
     def __get_entry_id(self, entry):
         if 'id' in entry:
@@ -29,11 +29,8 @@ class FeedParser(object):
     def parse(self, feed):
         p = feedparser.parse(feed.url)
         for entry in p.entries:
-            yield models.Entry(self.__get_entry_id(entry), entry.link, entry.title, self.__get_entry_date(entry))
+            yield models.Entry(self.__get_entry_id(entry), entry.link, entry.title, self.__get_entry_date(entry), feed)
 
     def import_feed(self, feed):
-        session = self.store.session()
-
         for entry in self.parse(feed):
-            session.add_or_ignore(entry)
-        session.commit()
+            self.session.add_or_ignore(entry)

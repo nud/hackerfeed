@@ -5,8 +5,8 @@
 </head>
 <body>
   {% for entry in entries %}
-    <p>{{ pageno * pagesize + loop.index }}.
-       <a href="{{ entry.link|escape }}">{{ entry.title|escape }}</a> ({{ entry.updated|dateformat }})</p>
+    <p>{{ pageno * pagesize + loop.index }}. {{ entry.updated|dateformat }} &mdash;
+       <a href="{{ entry.link|escape }}">{{ entry.title|escape }}</a> ({{ entry.feed.title }})</p>
   {% endfor %}
 
   <p>

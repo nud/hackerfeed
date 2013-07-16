@@ -26,9 +26,11 @@ def hackerfeed(db_filename):
         parser.import_opml(args.opml)
 
     if args.poll:
-        parser = feeds.FeedParser(store)
-        for feed in store.session().query(models.Feed).all():
+        session = store.session()
+        parser = feeds.FeedParser(session)
+        for feed in session.query(models.Feed).all():
             parser.import_feed(feed)
+            session.commit()
 
     if args.generate:
         session = store.session()
