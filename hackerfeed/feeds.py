@@ -26,10 +26,15 @@ class FeedParser(object):
             if field in entry:
                 return time.mktime(entry[field + '_parsed'])
 
+    def __get_entry_author(self, entry):
+        if 'author_detail' in entry:
+            return entry.author_detail.name
+
     def parse(self, feed):
         p = feedparser.parse(feed.url)
         for entry in p.entries:
-            yield models.Entry(self.__get_entry_id(entry), entry.link, entry.title, self.__get_entry_date(entry), feed)
+            yield models.Entry(self.__get_entry_id(entry), entry.link, entry.title,
+                               self.__get_entry_date(entry), self.__get_entry_author(entry), feed)
 
     def import_feed(self, feed):
         for entry in self.parse(feed):

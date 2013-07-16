@@ -36,13 +36,15 @@ class Entry(Base):
     link = Column(String)
     title = Column(String)
     updated = Column(Integer)
+    author = Column(String)
     feed_id = Column(Integer, ForeignKey('feed.id'))
 
-    def __init__(self, id, link, title, updated, feed):
+    def __init__(self, id, link, title, updated, author, feed):
         self.id = id
         self.link = link
         self.title = title
         self.updated = updated
+        self.author = author
         self.feed_id = feed.id
 
     def __repr__(self):
