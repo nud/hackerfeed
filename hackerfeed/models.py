@@ -13,7 +13,7 @@ Base = declarative_base()
 
 
 class Feed(Base):
-    __tablename__ = 'feeds'
+    __tablename__ = 'feed'
 
     id = Column(Integer, primary_key=True)
     url = Column(String, unique=True)
@@ -28,7 +28,7 @@ class Feed(Base):
 
 
 class Entry(Base):
-    __tablename__ = 'entries'
+    __tablename__ = 'entry'
 
     id = Column(String, primary_key=True)
     link = Column(String)
