@@ -8,7 +8,6 @@
 
 import feedparser
 import time
-from sqlalchemy.exc import IntegrityError
 
 import models
 
@@ -36,8 +35,5 @@ class FeedParser(object):
         session = self.store.session()
 
         for entry in self.parse(feed):
-           try:
-               session.add(entry)
-               session.commit()
-           except IntegrityError, e:
-               session.rollback()
+            session.add_or_ignore(entry)
+        session.commit()
