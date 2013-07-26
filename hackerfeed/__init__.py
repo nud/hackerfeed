@@ -35,7 +35,7 @@ def hackerfeed(db_filename):
     if args.generate:
         session = store.session()
         template = views.env.get_template('page.html')
-        pagesize = 100
+        pagesize = 30
 
         for pageno in range(0, 10):
             entries = session.query(models.Entry).order_by('updated desc').offset(pageno*100).limit(100)
@@ -46,3 +46,5 @@ def hackerfeed(db_filename):
             }
             path = os.path.join(args.generate, 'p%02d.html' % (pageno+1))
             template.stream(**variables).dump(path, 'utf-8')
+
+        views.env.get_template('style.css').stream().dump(os.path.join(args.generate, 'style.css'))

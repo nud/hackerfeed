@@ -1,19 +1,27 @@
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
   <title>Hacker Feed</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-  {% for entry in entries %}
-    <p>{{ pageno * pagesize + loop.index }}.
-       <a href="{{ entry.link|escape }}">{{ entry.title|escape }}</a><br>
-       {% if entry.author %}{{ entry.author }} {% endif %}({{ entry.feed.title }}) &mdash; {{ entry.updated|dateformat }}</p>
-  {% endfor %}
+  <div id="wrapper">
+    <header>
+      <h1>Hacker Feed</h1>
+    </header>
+    {% for entry in entries %}
+      <p><span class="linkno">{{ pageno * pagesize + loop.index }}.</span>
+         <a href="{{ entry.link|escape }}">{{ entry.title|escape }}</a><br>
+         {% if entry.author %}{{ entry.author }} {% endif %}({{ entry.feed.title }}) &mdash; {{ entry.updated|dateformat }}</p>
+    {% endfor %}
 
-  <p>
-  {% for pageno in range(1, 11) %}
-    <a href="{{ 'p%02d.html' % pageno }}">{{ pageno }}</a>{% if not loop.last %} -{% endif %}
-  {% endfor %}
-  </p>
+    <p>
+    {% for pageno in range(1, 11) %}
+      <a href="{{ 'p%02d.html' % pageno }}">{{ pageno }}</a>{% if not loop.last %} -{% endif %}
+    {% endfor %}
+    </p>
+  </div>
 </body>
 </html>
