@@ -28,9 +28,7 @@ def hackerfeed(db_filename):
     if args.poll:
         session = store.session()
         parser = feeds.FeedParser(session)
-        for feed in session.query(models.Feed).all():
-            parser.import_feed(feed)
-            session.commit()
+        parser.import_feeds(session.query(models.Feed).all())
 
     if args.generate:
         session = store.session()

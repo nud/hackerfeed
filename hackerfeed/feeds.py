@@ -8,14 +8,13 @@
 
 import feedparser
 import time
+import multiprocessing as mp
+import sys
 
 import models
 
 
-class FeedParser(object):
-    def __init__(self, session):
-        self.session = session
-
+class _FeedFetcher(object):
     def __get_entry_id(self, entry):
         if 'id' in entry:
             return entry.id
@@ -30,12 +29,37 @@ class FeedParser(object):
         if 'author_detail' in entry:
             return entry.author_detail.name
 
-    def parse(self, feed):
-        p = feedparser.parse(feed.url)
-        for entry in p.entries:
-            yield models.Entry(self.__get_entry_id(entry), entry.link, entry.title,
-                               self.__get_entry_date(entry), self.__get_entry_author(entry), feed)
+    def __get_entry_fields(self, entry):
+        return (
+            self.__get_entry_id(entry),
+            entry.link,
+            entry.title,
+            self.__get_entry_date(entry),
+            self.__get_entry_author(entry)
+        )
 
-    def import_feed(self, feed):
-        for entry in self.parse(feed):
-            self.session.add_or_ignore(entry)
+    def parse_url(self, url):
+        p = feedparser.parse(url)
+        return [self.__get_entry_fields(entry) for entry in p.entries]
+
+
+def _parse_url_cb(params):
+    feed_idx, feed_url = params
+    return (feed_idx, _FeedFetcher().parse_url(feed_url))
+
+
+class FeedParser(object):
+    def __init__(self, session):
+        self.session = session
+
+    def import_feeds(self, feed_list):
+        n_feeds = len(feed_list)
+
+        p = mp.Pool(4)
+
+        for feed_idx, entries in p.imap_unordered(_parse_url_cb, [(i, feed_list[i].url) for i in range(n_feeds)]):
+            print >>sys.stderr, "Updating %s" % feed_list[feed_idx].url
+            for entry in entries:
+                params = entry + (feed_list[feed_idx],)
+                self.session.add_or_ignore(models.Entry(*params))
+            self.session.commit()
