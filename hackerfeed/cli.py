@@ -13,5 +13,6 @@ def parse_args():
     parser.add_argument('--opml', dest='opml', help='import an OPML file')
     parser.add_argument('--poll', dest='poll', action='store_true', help='poll the configured list of feeds.')
     parser.add_argument('--generate', dest='generate', help='generate the HTML files')
+    parser.add_argument('--serve', dest='serve', action='store_true', help='serve the web site')
 
     return parser.parse_args()

@@ -14,6 +14,7 @@ import feeds
 import models
 import opml
 import views
+import webserver
 
 
 def hackerfeed(db_filename):
@@ -46,3 +47,7 @@ def hackerfeed(db_filename):
             template.stream(**variables).dump(path, 'utf-8')
 
         views.env.get_template('style.css').stream().dump(os.path.join(args.generate, 'style.css'))
+
+    if args.serve:
+        webserver.app.debug = True
+        webserver.app.run()

@@ -25,8 +25,11 @@ class StoreSession(Session):
 
 
 class Store(object):
+    instance = None
+
     def __init__(self, filename):
         self.__init_engine(filename)
+        Store.instance = self
 
     def __init_engine(self, filename):
         db_exists = os.path.exists(filename)
