@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
-import models
+from . import models
 
 
 class StoreSession(Session):

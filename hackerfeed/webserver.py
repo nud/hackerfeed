@@ -9,12 +9,12 @@
 import os
 from flask import Flask
 
-import storage
-import cli
-import feeds
-import models
-import opml
-import views
+from . import storage
+from . import cli
+from . import feeds
+from . import models
+from . import opml
+from . import views
 
 app = Flask(__name__)
 

@@ -11,7 +11,7 @@ import time
 import multiprocessing as mp
 import sys
 
-import models
+from . import models
 
 
 class _FeedFetcher(object):

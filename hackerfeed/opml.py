@@ -8,7 +8,7 @@
 
 import xml.sax
 
-import models
+from . import models
 
 
 class OpmlContentHandler(xml.sax.ContentHandler):
