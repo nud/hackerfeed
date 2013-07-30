@@ -63,3 +63,6 @@ class FeedParser(object):
                 params = entry + (feed_list[feed_idx],)
                 self.session.add_or_ignore(models.Entry(*params))
             self.session.commit()
+
+        p.close()
+        p.join()
