@@ -14,25 +14,25 @@ import feeds
 import models
 import opml
 import views
-import webserver
 
 
-def hackerfeed(db_filename):
-    store = storage.Store(db_filename)
+DB_FILENAME = 'cache.db'
 
-    args = cli.parse_args()
 
-    if args.opml:
-        parser = opml.OpmlParser(store)
-        parser.import_opml(args.opml)
+class HackerFeed(object):
+    def __init__(self):
+        self.store = storage.Store(DB_FILENAME)
 
-    if args.poll:
-        session = store.session()
+    def import_opml(self, filename):
+        opml.OpmlParser(self.store).import_opml(filename)
+
+    def update_feeds(self):
+        session = self.store.session()
         parser = feeds.FeedParser(session)
         parser.import_feeds(session.query(models.Feed).all())
 
-    if args.generate:
-        session = store.session()
+    def generate(self, dirname):
+        session = self.store.session()
         template = views.env.get_template('page.html')
         pagesize = 30
 
@@ -43,11 +43,30 @@ def hackerfeed(db_filename):
                 'pageno': pageno,
                 'pagesize': pagesize,
             }
-            path = os.path.join(args.generate, 'p%02d.html' % (pageno+1))
+            path = os.path.join(dirname, 'p%02d.html' % (pageno+1))
             template.stream(**variables).dump(path, 'utf-8')
 
-        views.env.get_template('style.css').stream().dump(os.path.join(args.generate, 'style.css'))
+        views.env.get_template('style.css').stream().dump(os.path.join(dirname, 'style.css'))
+
+    def serve(self):
+        from webserver import app
+        app.debug = True
+        app.run()
+
+
+def hackerfeed(db_filename):
+    hf = HackerFeed()
+
+    args = cli.parse_args()
+
+    if args.opml:
+        hf.import_opml(args.opml)
+
+    if args.poll:
+        hf.update_feeds()
+
+    if args.generate:
+        hf.generate(args.generate)
 
     if args.serve:
-        webserver.app.debug = True
-        webserver.app.run()
+        hf.serve()
