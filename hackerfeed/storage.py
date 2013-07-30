@@ -38,7 +38,7 @@ class Store(object):
         # https://groups.google.com/forum/#!topic/sqlalchemy-devel/0lanNjxSpb0
         # https://groups.google.com/forum/#!topic/sqlalchemy/XTUf_Pe4cNA/discussion
         # It might break things!
-        self.engine = create_engine('sqlite:///' + filename, echo=True, connect_args={'isolation_level': None})
+        self.engine = create_engine('sqlite:///' + filename, connect_args={'isolation_level': None})
         self.session = sessionmaker(bind=self.engine, class_=StoreSession)
 
         @event.listens_for(self.engine, "begin")
