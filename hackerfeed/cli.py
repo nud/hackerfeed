@@ -7,6 +7,8 @@
 
 import argparse
 
+from . import hf
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Damn Simple RSS Client')
@@ -16,3 +18,15 @@ def parse_args():
     parser.add_argument('--serve', dest='serve', action='store_true', help='serve the web site')
 
     return parser.parse_args()
+
+def run():
+    args = parse_args()
+
+    if args.opml:
+        hf.import_opml(args.opml)
+    if args.poll:
+        hf.update_feeds()
+    if args.generate:
+        hf.generate(args.generate)
+    if args.serve:
+        hf.serve()

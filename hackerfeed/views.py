@@ -23,6 +23,3 @@ class Environment(jinja2.Environment):
 
     def __init_custom_filters(self):
         self.filters['dateformat'] = dateformat
-
-
-env = Environment()

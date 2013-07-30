@@ -9,12 +9,8 @@
 import os
 from flask import Flask
 
-from . import storage
-from . import cli
-from . import feeds
+from . import hf, models
 from . import models
-from . import opml
-from . import views
 
 app = Flask(__name__)
 
@@ -26,7 +22,7 @@ def index():
 def page(pageno):
     pageno -= 1
 
-    session = storage.Store.instance.session()
+    session = hf.store.session()
     pagesize = 30
 
     entries = session.query(models.Entry).order_by('updated desc').offset(pageno*100).limit(100)
@@ -35,10 +31,10 @@ def page(pageno):
         'pageno': pageno,
         'pagesize': pagesize,
     }
-    return views.env.get_template('page.html').render(**variables).encode('UTF-8')
+    return hf.env.get_template('page.html').render(**variables).encode('UTF-8')
 
 @app.route('/style.css')
 def stylesheet():
-    return (views.env.get_template('style.css').render().encode('UTF-8'),
+    return (hf.env.get_template('style.css').render().encode('UTF-8'),
             200,
             { 'Content-type': 'text/css; charset=utf-8' })
