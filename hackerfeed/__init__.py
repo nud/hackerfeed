@@ -48,10 +48,5 @@ class HackerFeed(object):
 
         self.env.get_template('style.css').stream().dump(os.path.join(dirname, 'style.css'))
 
-    def serve(self):
-        from webserver import app
-        app.debug = True
-        app.run()
-
 
 hf = HackerFeed()
