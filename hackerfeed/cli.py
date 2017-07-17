@@ -7,7 +7,7 @@
 
 import argparse
 
-from . import hf
+from . import HackerFeed
 
 
 def parse_args():
@@ -20,6 +20,8 @@ def parse_args():
 
 def run():
     args = parse_args()
+
+    hf = HackerFeed()
 
     if args.opml:
         hf.import_opml(args.opml)

@@ -47,6 +47,3 @@ class HackerFeed(object):
             template.stream(**variables).dump(path, 'utf-8')
 
         self.env.get_template('style.css').stream().dump(os.path.join(dirname, 'style.css'))
-
-
-hf = HackerFeed()
