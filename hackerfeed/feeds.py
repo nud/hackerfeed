@@ -59,7 +59,7 @@ class FeedParser(object):
 
         for feed_idx, entries in p.imap_unordered(_parse_url_cb, [(i, feed_list[i].url) for i in range(n_feeds)]):
             print >>sys.stderr, "Updating %s" % feed_list[feed_idx].url
-            self.cache.set_json(feed_list[feed_idx].url, entries)
+            self.cache.set_entry_list(feed_list[feed_idx].url, entries)
 
         p.close()
         p.join()

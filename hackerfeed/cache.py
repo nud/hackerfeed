@@ -21,3 +21,13 @@ class Cache(object):
 
     def get_json(self, key):
         return json.load(self.__open(key, 'r'))
+
+    def set_entry_list(self, key, entries):
+        fd = self.__open(key, 'w')
+        for entry in sorted(entries, key=lambda x: x['updated'], reverse=True):
+            json.dump(entry, fd)
+            fd.write("\n")
+
+    def get_entry_list(self, key):
+        fd = self.__open(key, 'r')
+        return (json.loads(line) for line in fd)

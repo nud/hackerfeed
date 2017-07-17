@@ -5,6 +5,7 @@
 # This module is part of hackerfeed and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
+import heapq
 import itertools
 import os
 
@@ -30,10 +31,10 @@ class HackerFeed(object):
         template = self.env.get_template('page.html')
         pagesize = 30
 
-        all_entries = sorted(list(itertools.chain.from_iterable(
-                [dict(feed=x, **item) for item in self.cache.get_json(x.url)]
-                        for x in self.opml.get_feeds())),
-                key=lambda x: x['updated'], reverse=True)
+        iterables = []
+        for feed in self.opml.get_feeds():
+            iterables.append(([-x['updated'], dict(feed=feed, **x)] for x in self.cache.get_entry_list(feed.url)))
+        all_entries = (item for (key, item) in heapq.merge(*iterables))
 
         for pageno in range(0, 10):
             entries = list(itertools.islice(all_entries, pagesize))
