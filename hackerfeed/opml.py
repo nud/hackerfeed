@@ -6,29 +6,26 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 
-import xml.sax
-
-from . import models
+import xml.etree.ElementTree as etree
 
 
-class OpmlContentHandler(xml.sax.ContentHandler):
-    def __init__(self, session):
-        self.session = session
+class Feed(object):
+    def __init__(self, el):
+        self.__element = el
 
-    def startElement(self, name, attrs):
-        if name == 'outline' and 'title' in attrs and 'xmlUrl' in attrs:
-            self.session.add_or_ignore(models.Feed(attrs['xmlUrl'], attrs['title']))
+    @property
+    def url(self):
+        return self.__element.get('xmlUrl')
+
+    @property
+    def title(self):
+        return self.__element.get('title')
 
 
-class OpmlParser(object):
-    def __init__(self, store):
-        self.store = store
+class Opml(object):
+    def __init__(self, filename):
+        self.filename = filename
+        self.__tree = etree.parse(filename)
 
-    def import_opml(self, filename):
-        session = self.store.session()
-        handler = OpmlContentHandler(session)
-
-        parser = xml.sax.make_parser()
-        parser.setContentHandler(handler)
-        parser.parse(open(filename, 'r'))
-        session.commit()
+    def get_feeds(self):
+        return [Feed(el) for el in self.__tree.getroot().find('body').findall('outline')]

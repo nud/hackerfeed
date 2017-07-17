@@ -11,8 +11,6 @@ import time
 import multiprocessing as mp
 import sys
 
-from . import models
-
 
 class _FeedFetcher(object):
     def __get_entry_id(self, entry):
@@ -30,13 +28,13 @@ class _FeedFetcher(object):
             return entry.author_detail.name
 
     def __get_entry_fields(self, entry):
-        return (
-            self.__get_entry_id(entry),
-            entry.link,
-            entry.title,
-            self.__get_entry_date(entry),
-            self.__get_entry_author(entry)
-        )
+        return {
+          'id': self.__get_entry_id(entry),
+          'link': entry.link,
+          'title': entry.title,
+          'updated': self.__get_entry_date(entry),
+          'author': self.__get_entry_author(entry)
+        }
 
     def parse_url(self, url):
         p = feedparser.parse(url)
@@ -49,20 +47,19 @@ def _parse_url_cb(params):
 
 
 class FeedParser(object):
-    def __init__(self, session):
-        self.session = session
+    def __init__(self, opml, cache):
+        self.opml = opml
+        self.cache = cache
 
-    def import_feeds(self, feed_list):
+    def update_feeds(self):
+        feed_list = self.opml.get_feeds()
         n_feeds = len(feed_list)
 
         p = mp.Pool(4)
 
         for feed_idx, entries in p.imap_unordered(_parse_url_cb, [(i, feed_list[i].url) for i in range(n_feeds)]):
             print >>sys.stderr, "Updating %s" % feed_list[feed_idx].url
-            for entry in entries:
-                params = entry + (feed_list[feed_idx],)
-                self.session.add_or_ignore(models.Entry(*params))
-            self.session.commit()
+            self.cache.set_json(feed_list[feed_idx].url, entries)
 
         p.close()
         p.join()

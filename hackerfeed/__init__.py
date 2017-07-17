@@ -5,41 +5,40 @@
 # This module is part of hackerfeed and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-
+import itertools
 import os
 
-from . import storage
+from . import cache
 from . import feeds
-from . import models
 from . import opml
 from . import views
 
 
-DB_FILENAME = 'cache.db'
-
-
 class HackerFeed(object):
-    def __init__(self):
-        self.store = storage.Store(DB_FILENAME)
+    def __init__(self, opml_filename):
+        assert(os.path.isfile(opml_filename))
+
+        self.opml = opml.Opml(opml_filename)
+        self.cache = cache.Cache(os.path.join(os.path.dirname(opml_filename), '.hf-cache'))
         self.env = views.Environment()
 
-    def import_opml(self, filename):
-        opml.OpmlParser(self.store).import_opml(filename)
-
     def update_feeds(self):
-        session = self.store.session()
-        parser = feeds.FeedParser(session)
-        parser.import_feeds(session.query(models.Feed).all())
+        parser = feeds.FeedParser(self.opml, self.cache)
+        parser.update_feeds()
 
     def generate(self, dirname):
-        session = self.store.session()
         template = self.env.get_template('page.html')
         pagesize = 30
 
+        all_entries = sorted(list(itertools.chain.from_iterable(
+                [dict(feed=x, **item) for item in self.cache.get_json(x.url)]
+                        for x in self.opml.get_feeds())),
+                key=lambda x: x['updated'], reverse=True)
+
         for pageno in range(0, 10):
-            entries = session.query(models.Entry).order_by('updated desc').offset(pageno*100).limit(100)
+            entries = list(itertools.islice(all_entries, pagesize))
             variables = {
-                'entries': entries.all(),
+                'entries': entries,
                 'pageno': pageno,
                 'pagesize': pagesize,
             }
