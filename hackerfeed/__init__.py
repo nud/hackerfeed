@@ -31,9 +31,13 @@ class HackerFeed(object):
         template = self.env.get_template('page.html')
         pagesize = 30
 
+        def generator(feed):
+            for item in self.cache.get_entry_list(feed.url):
+                yield (-item['updated'], dict(feed=feed, **item))
+
         iterables = []
         for feed in self.opml.get_feeds():
-            iterables.append(([-x['updated'], dict(feed=feed, **x)] for x in self.cache.get_entry_list(feed.url)))
+            iterables.append(generator(feed))
         all_entries = (item for (key, item) in heapq.merge(*iterables))
 
         for pageno in range(0, 10):
