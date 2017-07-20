@@ -53,13 +53,12 @@ class FeedParser(object):
 
     def update_feeds(self):
         feed_list = self.opml.get_feeds()
-        n_feeds = len(feed_list)
 
         p = mp.Pool(4)
 
-        for feed_idx, entries in p.imap_unordered(_parse_url_cb, [(i, feed_list[i].url) for i in range(n_feeds)]):
-            print("Updating %s" % feed_list[feed_idx].url, file=sys.stderr)
-            self.cache.set_entry_list(feed_list[feed_idx].url, entries)
+        for idx, entries in p.imap_unordered(_parse_url_cb, enumerate(x.url for x in feed_list)):
+            print("Updating %s" % feed_list[idx].url, file=sys.stderr)
+            self.cache.set_entry_list(feed_list[idx].url, entries)
 
         p.close()
         p.join()
