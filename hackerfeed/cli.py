@@ -12,9 +12,15 @@ from . import HackerFeed
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Damn Simple RSS Client')
-    parser.add_argument('--opml', dest='opml', default='hf.opml', help='import an OPML file')
-    parser.add_argument('--poll', dest='poll', action='store_true', help='poll the configured list of feeds.')
-    parser.add_argument('--generate', dest='generate', help='generate the HTML files')
+    parser.add_argument('--opml', dest='opml', default='hf.opml',
+                        help='use the specified OPML file')
+
+    subparsers = parser.add_subparsers(dest='command')
+
+    subparser = subparsers.add_parser('generate', help='generate the HTML files')
+    subparser.add_argument('--no-update', dest='update', action='store_false', default='true',
+                           help='do not update the RSS feeds.')
+    subparser.add_argument('dir', help='destination directory')
 
     return parser.parse_args()
 
@@ -23,7 +29,7 @@ def run():
 
     hf = HackerFeed(args.opml)
 
-    if args.poll:
-        hf.update_feeds()
-    if args.generate:
-        hf.generate(args.generate)
+    if args.command == 'generate':
+        if args.update:
+            hf.update_feeds()
+        hf.generate(args.dir)
