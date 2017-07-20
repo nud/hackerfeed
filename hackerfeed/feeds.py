@@ -58,7 +58,7 @@ class FeedParser(object):
         p = mp.Pool(4)
 
         for feed_idx, entries in p.imap_unordered(_parse_url_cb, [(i, feed_list[i].url) for i in range(n_feeds)]):
-            print >>sys.stderr, "Updating %s" % feed_list[feed_idx].url
+            print("Updating %s" % feed_list[feed_idx].url, file=sys.stderr)
             self.cache.set_entry_list(feed_list[feed_idx].url, entries)
 
         p.close()

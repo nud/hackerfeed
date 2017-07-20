@@ -11,7 +11,7 @@ class Cache(object):
 
     def __open(self, key, mode='r'):
         h = hashlib.sha1()
-        h.update(key)
+        h.update(key.encode('utf-8'))
         real_path = os.path.join(self.__cache_dir, h.hexdigest() + '.json')
 
         return open(real_path, mode)
