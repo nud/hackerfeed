@@ -22,6 +22,10 @@ def parse_args():
                            help='do not update the RSS feeds.')
     subparser.add_argument('dir', help='destination directory')
 
+    subparser = subparsers.add_parser('add', help='add a new Atom/RSS feed')
+    subparser.add_argument('--title', help='title of the feed')
+    subparser.add_argument('url', help='url of the feed')
+
     return parser.parse_args()
 
 def run():
@@ -33,3 +37,6 @@ def run():
         if args.update:
             hf.update_feeds()
         hf.generate(args.dir)
+
+    elif args.command == 'add':
+        hf.add(args.url, args.title)

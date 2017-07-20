@@ -8,6 +8,7 @@
 import heapq
 import itertools
 import os
+import sys
 
 from . import cache
 from . import feeds
@@ -23,9 +24,11 @@ class HackerFeed(object):
         self.cache = cache.Cache(os.path.join(os.path.dirname(opml_filename), '.hf-cache'))
         self.env = views.Environment()
 
+    def _get_feedparser(self):
+        return feeds.FeedParser(self.opml, self.cache)
+
     def update_feeds(self):
-        parser = feeds.FeedParser(self.opml, self.cache)
-        parser.update_feeds()
+        self._get_feedparser().update_feeds()
 
     def generate(self, dirname):
         template = self.env.get_template('page.html')
@@ -51,3 +54,16 @@ class HackerFeed(object):
             template.stream(**variables).dump(path, 'utf-8')
 
         self.env.get_template('style.css').stream().dump(os.path.join(dirname, 'style.css'))
+
+    def add(self, url, title=None):
+        if self.opml.has(url):
+            print("URL '%s' is already present in '%s'" % (url, self.opml.filename), file=sys.stderr)
+            sys.exit(1)
+        else:
+            if title is None:
+                info = self._get_feedparser().fetch_feed_info(url)
+                title = info['title']
+
+            print('Adding feed with url %s and title "%s"' % (url, title))
+            self.opml.add(url, title)
+            self.opml.save()

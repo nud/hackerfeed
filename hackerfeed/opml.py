@@ -27,5 +27,20 @@ class Opml(object):
         self.filename = filename
         self.__tree = etree.parse(filename)
 
+    def __body(self):
+        return self.__tree.getroot().find('body')
+
     def get_feeds(self):
-        return [Feed(el) for el in self.__tree.getroot().find('body').findall('outline')]
+        return [Feed(el) for el in self.__body().findall('outline')]
+
+    def has(self, url):
+        return any(f.url == url for f in self.get_feeds())
+
+    def add(self, url, title):
+        child = etree.Element('outline')
+        self.__body().append(child)
+        child.set('xmlUrl', url)
+        child.set('title', title)
+
+    def save(self):
+        self.__tree.write(self.filename)
