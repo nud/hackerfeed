@@ -5,15 +5,13 @@
 # This module is part of hackerfeed and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-import heapq
-import itertools
 import os
 import sys
 
 from . import cache
 from . import feeds
+from . import renderer
 from . import opml
-from . import views
 
 
 class HackerFeed(object):
@@ -33,31 +31,8 @@ class HackerFeed(object):
         self._get_feedparser().update_feeds()
 
     def generate(self, dirname):
-        env = views.Environment()
-        template = env.get_template('page.html')
-        pagesize = 30
-
-        def generator(cache, feed):
-            for item in cache.get_entry_list(feed.url):
-                yield (-item['updated'], dict(feed=feed, **item))
-
-        iterables = []
-        cache = self._get_cache()
-        for feed in self.opml.get_feeds():
-            iterables.append(generator(cache, feed))
-        all_entries = (item for (key, item) in heapq.merge(*iterables))
-
-        for pageno in range(0, 10):
-            entries = list(itertools.islice(all_entries, pagesize))
-            variables = {
-                'entries': entries,
-                'pageno': pageno,
-                'pagesize': pagesize,
-            }
-            path = os.path.join(dirname, 'p%02d.html' % (pageno+1))
-            template.stream(**variables).dump(path, 'utf-8')
-
-        env.get_template('style.css').stream().dump(os.path.join(dirname, 'style.css'))
+        render = renderer.Renderer(self.opml, self._get_cache())
+        render(dirname)
 
     def add(self, url, title=None):
         if self.opml.has(url):
