@@ -21,26 +21,27 @@ class HackerFeed(object):
         assert(os.path.isfile(opml_filename))
 
         self.opml = opml.Opml(opml_filename)
-        self.cache = cache.Cache(os.path.join(os.path.dirname(opml_filename), '.hf-cache'))
-        self.env = views.Environment()
+        self.cache_dir = os.path.join(os.path.dirname(opml_filename), '.hf-cache')
 
     def _get_feedparser(self):
-        return feeds.FeedParser(self.opml, self.cache)
+        return feeds.FeedParser(self.opml, self.cache_dir)
 
     def update_feeds(self):
         self._get_feedparser().update_feeds()
 
     def generate(self, dirname):
-        template = self.env.get_template('page.html')
+        env = views.Environment()
+        template = env.get_template('page.html')
         pagesize = 30
 
-        def generator(feed):
-            for item in self.cache.get_entry_list(feed.url):
+        def generator(cache, feed):
+            for item in cache.get_entry_list(feed.url):
                 yield (-item['updated'], dict(feed=feed, **item))
 
         iterables = []
+        xcache = cache.Cache(self.cache_dir)
         for feed in self.opml.get_feeds():
-            iterables.append(generator(feed))
+            iterables.append(generator(xcache, feed))
         all_entries = (item for (key, item) in heapq.merge(*iterables))
 
         for pageno in range(0, 10):
@@ -53,7 +54,7 @@ class HackerFeed(object):
             path = os.path.join(dirname, 'p%02d.html' % (pageno+1))
             template.stream(**variables).dump(path, 'utf-8')
 
-        self.env.get_template('style.css').stream().dump(os.path.join(dirname, 'style.css'))
+        env.get_template('style.css').stream().dump(os.path.join(dirname, 'style.css'))
 
     def add(self, url, title=None):
         if self.opml.has(url):
