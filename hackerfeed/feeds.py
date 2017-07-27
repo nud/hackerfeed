@@ -45,13 +45,18 @@ class _FeedFetcher(object):
     def __get_info_fields(self, parser):
         return {
             'title': parser.feed.title,
+            'etag': parser.get('etag'),
+            'modified': parser.get('modified'),
         }
 
     def parse_url(self, url):
-        p = feedparser.parse(url)
-        info = self.__get_info_fields(p)
-        entries = [self.__get_entry_fields(entry) for entry in p.entries]
-        self.__cache.set_entry_list(url, entries)
+        info = self.__cache.get_metadata(url)
+        p = feedparser.parse(url, etag=info.get('etag'), modified=info.get('modified'))
+        if p.status == 200:
+            info = self.__get_info_fields(p)
+            entries = [self.__get_entry_fields(entry) for entry in p.entries]
+            self.__cache.set_entry_list(url, entries)
+            self.__cache.set_metadata(url, info)
         return info
 
 
@@ -66,7 +71,7 @@ class FeedParser(object):
         self.cache_dir = cache_dir
 
     def fetch_feed_info(self, url):
-        return _FeedFetcher(self.cache_dir).parse_url(url)
+        return _FeedFetcher(self.cache_dir).parse_url(url)[1]
 
     def update_feeds(self):
         feed_list = self.opml.get_feeds()
