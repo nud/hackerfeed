@@ -26,6 +26,9 @@ class HackerFeed(object):
     def _get_feedparser(self):
         return feeds.FeedParser(self.opml, self.cache_dir)
 
+    def _get_cache(self):
+        return cache.Cache(self.cache_dir)
+
     def update_feeds(self):
         self._get_feedparser().update_feeds()
 
@@ -39,9 +42,9 @@ class HackerFeed(object):
                 yield (-item['updated'], dict(feed=feed, **item))
 
         iterables = []
-        xcache = cache.Cache(self.cache_dir)
+        cache = self._get_cache()
         for feed in self.opml.get_feeds():
-            iterables.append(generator(xcache, feed))
+            iterables.append(generator(cache, feed))
         all_entries = (item for (key, item) in heapq.merge(*iterables))
 
         for pageno in range(0, 10):
@@ -62,8 +65,8 @@ class HackerFeed(object):
             sys.exit(1)
         else:
             if title is None:
-                info = self._get_feedparser().fetch_feed_info(url)
-                title = info['title']
+                self._get_feedparser().update_feed(url)
+                title = self._get_cache().get_metadata(url)['title']
 
             print('Adding feed with url %s and title "%s"' % (url, title))
             self.opml.add(url, title)

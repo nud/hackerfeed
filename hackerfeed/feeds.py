@@ -15,7 +15,7 @@ from itertools import repeat
 
 from . import cache
 
-class _FeedFetcher(object):
+class _FeedUpdater(object):
     def __init__(self, cache_dir):
         self.__cache = cache.Cache(cache_dir)
 
@@ -49,7 +49,7 @@ class _FeedFetcher(object):
             'modified': parser.get('modified'),
         }
 
-    def parse_url(self, url):
+    def update(self, url):
         info = self.__cache.get_metadata(url)
         p = feedparser.parse(url, etag=info.get('etag'), modified=info.get('modified'))
         if p.status == 200:
@@ -57,12 +57,12 @@ class _FeedFetcher(object):
             entries = [self.__get_entry_fields(entry) for entry in p.entries]
             self.__cache.set_entry_list(url, entries)
             self.__cache.set_metadata(url, info)
-        return info
 
 
-def _parse_url_cb(params):
+def _update_cb(params):
     feed_url, cache_dir = params
-    return (feed_url, _FeedFetcher(cache_dir).parse_url(feed_url))
+    _FeedUpdater(cache_dir).update(feed_url)
+    return feed_url
 
 
 class FeedParser(object):
@@ -70,8 +70,8 @@ class FeedParser(object):
         self.opml = opml
         self.cache_dir = cache_dir
 
-    def fetch_feed_info(self, url):
-        return _FeedFetcher(self.cache_dir).parse_url(url)[1]
+    def update_feed(self, url):
+        _FeedUpdater(self.cache_dir).update(url)
 
     def update_feeds(self):
         feed_list = self.opml.get_feeds()
@@ -79,7 +79,7 @@ class FeedParser(object):
         p = mp.Pool(4)
 
         params = zip((feed.url for feed in feed_list), repeat(self.cache_dir))
-        for feed_url, info in p.imap_unordered(_parse_url_cb, params):
+        for feed_url in p.imap_unordered(_update_cb, params):
             print("Updated %s" % feed_url, file=sys.stderr)
 
         p.close()
